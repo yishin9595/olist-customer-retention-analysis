@@ -12,10 +12,8 @@ with valid_orders as (
     ) as order_rank
 
   from `project_name.Brazilian_ECommerce_Olist.olist_orders_dataset` as o
-
   join `project_name.Brazilian_ECommerce_Olist.olist_customers_dataset` as c
     on o.customer_id = c.customer_id
-
   where o.order_status not in ('canceled', 'unavailable')
     and o.order_approved_at is not null
 ),
@@ -24,7 +22,6 @@ max_date as (
 
   select
     date(max(order_approved_at)) as data_max_date
-
   from valid_orders
 ),
 
@@ -33,9 +30,7 @@ order_payment as (
   select
     order_id,
     sum(payment_value) as order_value
-
   from `project_name.Brazilian_ECommerce_Olist.olist_order_payments_dataset`
-
   group by order_id
 ),
 
@@ -44,9 +39,7 @@ order_review as (
   select
     order_id,
     avg(review_score) as review_score
-
   from `project_name.Brazilian_ECommerce_Olist.olist_order_reviews_score`
-
   group by order_id
 ),
 
@@ -61,13 +54,10 @@ first_order as (
     r.review_score
 
   from valid_orders as vo
-
   left join order_payment as op
     on vo.order_id = op.order_id
-
   left join order_review as r
     on vo.order_id = r.order_id
-
   where vo.order_rank = 1
 ),
 
@@ -76,9 +66,7 @@ second_order as (
   select
     customer_unique_id,
     date(order_approved_at) as second_order_date
-
   from valid_orders
-
   where order_rank = 2
 ),
 
@@ -130,7 +118,6 @@ customer_features as (
     end as review_group
 
   from first_order as fo
-
   left join second_order as so
     on fo.customer_unique_id = so.customer_unique_id
 )
@@ -146,14 +133,11 @@ select
   ) as repeat_90d_rate
 
 from customer_features
-
 cross join max_date
-
 where first_order_date <= date_sub(
   data_max_date,
   interval 90 day
 )
 
 group by review_group
-
 order by repeat_90d_rate desc;
